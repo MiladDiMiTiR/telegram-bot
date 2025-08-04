@@ -172,7 +172,8 @@ async function getAIResponse(
   });
   
   if (!response.ok) {
-    throw new Error(`خطای API: ${response.status}`);
+    const errorBody = await response.text();
+    throw new Error(`خطای API: ${response.status} - ${errorBody}`);
   }
   
   const data = await response.json();
@@ -192,23 +193,28 @@ async function getAIResponse(
 // تنظیم وب‌هوک
 const handleUpdate = webhookCallback(bot, "std/http");
 
-Deno.serve(async (req) => {
+// سرور با تنظیمات بهینه برای Render
+Deno.serve({
+  port: 8000,
+  hostname: "0.0.0.0",
+  onListen: () => console.log(`🤖 ربات ${BOT_NAME} در حال اجراست...`)
+}, async (req) => {
   try {
     const url = new URL(req.url);
     
-    // برای تست سلامت
-    if (url.pathname === "/" && req.method === "GET") {
-      return new Response(`🤖 ربات ${BOT_NAME} فعال است!`, { status: 200 });
+    // Health Check
+    if (url.pathname === "/") {
+      return new Response("🤖 ربات فعال است!", { status: 200 });
     }
-    
-    // پردازش آپدیت‌های تلگرام
-    if (url.pathname === `/${TELEGRAM_TOKEN}` && req.method === "POST") {
+
+    // Webhook Route
+    if (url.pathname.endsWith(`/${TELEGRAM_TOKEN}`)) {
       return await handleUpdate(req);
     }
-    
+
     return new Response("Not found", { status: 404 });
   } catch (err) {
-    console.error(err);
+    console.error("Error in server:", err);
     return new Response(err.message, { status: 500 });
   }
 });
