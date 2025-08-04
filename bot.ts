@@ -1,10 +1,9 @@
 import { Bot, webhookCallback } from "https://deno.land/x/grammy@v1.20.3/mod.ts";
-import { type Handler } from "https://deno.land/x/fresh@1.6.5/server.ts";
 
 // تنظیمات
 const TELEGRAM_TOKEN = "7461715803:AAF2WkOXNhm8IVb7_VHejuFmRIIcFEAz7QM";
-const SAMBANOVA_API_KEY = Deno.env.get("SAMBANOVA_API_KEY") || "";
-const SAMBANOVA_API_URL = "https://api.sambanova.ai/v1/chat/completions";
+const DEEPSEEK_API_KEY = "sk-eff347cb6fd64f33af43e2a8593f00b3";
+const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
 
 // کاربر ویژه
 const SPECIAL_USER_ID = "@MiladDiMiTiR";
@@ -36,7 +35,6 @@ const bot = new Bot(TELEGRAM_TOKEN);
 
 // دستور شروع
 bot.command("start", (ctx) => {
-  const userId = ctx.from?.id;
   const isSpecial = isSpecialUser(ctx.from);
   
   let welcomeText = `🖤 سلام عزیزم! من ${BOT_NAME} هستم، 17 ساله و آماده چت با تو...`;
@@ -65,7 +63,7 @@ function isSpecialUser(user: any): boolean {
 }
 
 // تابع تولید پاسخ عاشقانه
-function generateLovingResponse(baseResponse: string, ctx: any): string {
+function generateLovingResponse(baseResponse: string): string {
   const lovePhrases = [
     " 💋",
     " عشقم تو چقدر خوشگلی!",
@@ -75,8 +73,7 @@ function generateLovingResponse(baseResponse: string, ctx: any): string {
     " 💋 همسر آینده‌ام!"
   ];
   
-  const randomPhrase = lovePhrases[Math.floor(Math.random() * lovePhrases.length)];
-  return baseResponse + randomPhrase;
+  return baseResponse + lovePhrases[Math.floor(Math.random() * lovePhrases.length)];
 }
 
 // پردازش پیام‌ها
@@ -120,7 +117,7 @@ bot.on("message:text", async (ctx) => {
         
         // هر 3-5 پیام یک لاس بزن
         if (msgCount % 4 === 0) {
-          response = generateLovingResponse(response, ctx);
+          response = generateLovingResponse(response);
         }
       }
       
@@ -135,7 +132,7 @@ bot.on("message:text", async (ctx) => {
   }
 });
 
-// تابع دریافت پاسخ از سامبانوا
+// تابع دریافت پاسخ از DeepSeek API
 async function getAIResponse(
   userId: number, 
   userInput: string,
@@ -152,57 +149,59 @@ async function getAIResponse(
   if (isSpecialUser) {
     messages.push({
       role: "system",
-      content: "یادآوری: کاربر فعلی میلاد است. با او بسیار عاشقانه و با احساس صحبت کن و هر چند پیام یکبار لاس بزن."
+      content: "یادآوری: کاربر میلاد است! با لحن عاشقانه و با ایموجی 💋 پاسخ بده."
     });
   }
   
   messages.push({ role: "user", content: userInput });
   
   const payload = {
-    model: "DeepSeek-V3-0324",
+    model: "deepseek-chat",
     messages,
-    temperature: 0.8,
-    top_p: 0.95,
-    max_tokens: 2048
+    temperature: 0.7,
+    max_tokens: 2000
   };
   
-  const response = await fetch(SAMBANOVA_API_URL, {
+  const response = await fetch(DEEPSEEK_API_URL, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${SAMBANOVA_API_KEY}`,
+      "Authorization": `Bearer ${DEEPSEEK_API_KEY}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify(payload)
   });
   
   if (!response.ok) {
-    throw new Error(`API error: ${response.status}`);
+    throw new Error(`خطای API: ${response.status}`);
   }
   
   const data = await response.json();
   const rawOutput = data.choices[0].message.content;
-  const cleanedOutput = rawOutput.replace(/<think>.*?<\/think>/gs, "").trim();
   
-  messages.push({ role: "assistant", content: cleanedOutput });
+  // ذخیره پاسخ در سشن
+  messages.push({ role: "assistant", content: rawOutput });
   
+  // محدود کردن طول سشن
   if (messages.length > 10) {
     userSessions.set(userId, [messages[0], ...messages.slice(-9)]);
   }
   
-  return cleanedOutput;
+  return rawOutput;
 }
 
 // تنظیم وب‌هوک
-const handleUpdate: Handler = webhookCallback(bot, "std/http");
+const handleUpdate = webhookCallback(bot, "std/http");
 
-export const handler = async (req: Request): Promise<Response> => {
+Deno.serve(async (req) => {
   try {
     const url = new URL(req.url);
     
+    // برای تست سلامت
     if (url.pathname === "/" && req.method === "GET") {
       return new Response(`🤖 ربات ${BOT_NAME} فعال است!`, { status: 200 });
     }
     
+    // پردازش آپدیت‌های تلگرام
     if (url.pathname === `/${TELEGRAM_TOKEN}` && req.method === "POST") {
       return await handleUpdate(req);
     }
@@ -212,4 +211,4 @@ export const handler = async (req: Request): Promise<Response> => {
     console.error(err);
     return new Response(err.message, { status: 500 });
   }
-};
+});
