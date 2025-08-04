@@ -4,6 +4,9 @@ import { Bot, webhookCallback } from "https://deno.land/x/grammy@v1.20.3/mod.ts"
 const TELEGRAM_TOKEN = "7461715803:AAF2WkOXNhm8IVb7_VHejuFmRIIcFEAz7QM";
 const DEEPSEEK_API_KEY = "sk-eff347cb6fd64f33af43e2a8593f00b3";
 const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
+const { Bot } = require("grammy");
+const fetch = require("node-fetch");
+
 
 // کاربر ویژه
 const SPECIAL_USER_ID = "@MiladDiMiTiR";
