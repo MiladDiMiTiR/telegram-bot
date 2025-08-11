@@ -1,0 +1,16 @@
+{
+  "name": "telegram-bot",
+  "version": "1.0.0",
+  "description": "A simple Telegram bot",
+  "main": "index.js", // یا فایل اصلی شما (مثلاً `bot.js`, `main.ts`)
+  "scripts": {
+    "start": "node index.js", // یا دستور اجرای پروژه شما
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "node-telegram-bot-api": "^0.61.0" // مثال برای یک بات تلگرام
+  },
+  "engines": {
+    "node": ">=18.x" // نسخه Node.js مورد نیاز
+  }
+}
