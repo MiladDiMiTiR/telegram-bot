@@ -2,7 +2,7 @@ import { Bot, webhookCallback } from "https://deno.land/x/grammy@v1.20.3/mod.ts"
 
 // تنظیمات
 const TELEGRAM_TOKEN = "7461715803:AAF2WkOXNhm8IVb7_VHejuFmRIIcFEAz7QM";
-const DEEPSEEK_API_KEY = "sk-eff347cb6fd64f33af43e2a8593f00b3";
+const DEEPSEEK_API_KEY = "sk-a577c2bce4ef4e818e1d50891cfce3b7";
 const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
 
 // کاربر ویژه
