@@ -1,6 +1,0 @@
-services:
-  - type: web
-    name: telegram-bot
-    runtime: deno
-    buildCommand: deno cache bot.ts
-    startCommand: deno run -A bot.ts
