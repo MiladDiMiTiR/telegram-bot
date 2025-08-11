@@ -1,16 +1,16 @@
 {
   "name": "telegram-bot",
   "version": "1.0.0",
-  "description": "A simple Telegram bot",
-  "main": "index.js", // یا فایل اصلی شما (مثلاً `bot.js`, `main.ts`)
+  "description": "A Telegram bot built with Node.js",
+  "main": "bot.js",
   "scripts": {
-    "start": "node index.js", // یا دستور اجرای پروژه شما
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node bot.js"
   },
   "dependencies": {
-    "node-telegram-bot-api": "^0.61.0" // مثال برای یک بات تلگرام
+    "node-telegram-bot-api": "^0.61.0",
+    "dotenv": "^16.3.1"
   },
   "engines": {
-    "node": ">=18.x" // نسخه Node.js مورد نیاز
+    "node": ">=18.x"
   }
 }
