@@ -2,8 +2,8 @@ import { Bot, webhookCallback } from "https://deno.land/x/grammy@v1.20.3/mod.ts"
 
 // تنظیمات
 const TELEGRAM_TOKEN = "7461715803:AAF2WkOXNhm8IVb7_VHejuFmRIIcFEAz7QM";
-const DEEPSEEK_API_KEY = "sk-eff347cb6fd64f33af43e2a8593f00b3";
-const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
+const SAMBANOVA_API_KEY = "cba6940e-9d9e-44d3-bf53-7014369a0241";
+const SAMBANOVA_API_URL = "https://api.sambanova.ai/v1/chat/completions";
 
 // کاربر ویژه
 const SPECIAL_USER_ID = "@MiladDiMiTiR";
@@ -132,7 +132,7 @@ bot.on("message:text", async (ctx) => {
   }
 });
 
-// تابع دریافت پاسخ از DeepSeek API
+// تابع دریافت پاسخ از Sambanova API
 async function getAIResponse(
   userId: number, 
   userInput: string,
@@ -156,16 +156,17 @@ async function getAIResponse(
   messages.push({ role: "user", content: userInput });
   
   const payload = {
-    model: "deepseek-chat",
+    model: "DeepSeek-V3-0324", // مدل پیشفرض Sambanova
     messages,
-    temperature: 0.7,
-    max_tokens: 2000
+    temperature: 0.8, // تنظیمات خاص Sambanova
+    top_p: 0.95,
+    max_tokens: 2048
   };
   
-  const response = await fetch(DEEPSEEK_API_URL, {
+  const response = await fetch(SAMBANOVA_API_URL, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${DEEPSEEK_API_KEY}`,
+      "Authorization": `Bearer ${SAMBANOVA_API_KEY}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify(payload)
@@ -179,21 +180,24 @@ async function getAIResponse(
   const data = await response.json();
   const rawOutput = data.choices[0].message.content;
   
+  // پاکسازی خروجی (حذف تگ‌های think)
+  const cleanedOutput = rawOutput.replace(/<think>.*?<\/think>/gs, "").trim();
+  
   // ذخیره پاسخ در سشن
-  messages.push({ role: "assistant", content: rawOutput });
+  messages.push({ role: "assistant", content: cleanedOutput });
   
   // محدود کردن طول سشن
   if (messages.length > 10) {
     userSessions.set(userId, [messages[0], ...messages.slice(-9)]);
   }
   
-  return rawOutput;
+  return cleanedOutput;
 }
 
 // تنظیم وب‌هوک
 const handleUpdate = webhookCallback(bot, "std/http");
 
-// سرور با تنظیمات بهینه برای Render
+// سرور با تنظیمات بهینه
 Deno.serve({
   port: 8000,
   hostname: "0.0.0.0",
